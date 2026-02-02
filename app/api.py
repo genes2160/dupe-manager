@@ -267,3 +267,38 @@ async def ws_scan(scan_id: str, ws: WebSocket):
             pubsub.close()
         except Exception:
             pass
+
+@router.get("/scans")
+def list_scans():
+    conn = get_conn()
+    rows = conn.execute(
+        """
+        SELECT
+            id,
+            created_at,
+            root_path,
+            status,
+            total_files,
+            scanned_files,
+            message
+        FROM scan_runs
+        ORDER BY created_at DESC
+        """
+    ).fetchall()
+    conn.close()
+
+    return {
+        "count": len(rows),
+        "scans": [
+            {
+                "scan_id": r["id"],
+                "created_at": r["created_at"],
+                "root_path": r["root_path"],
+                "status": r["status"],
+                "total_files": r["total_files"],
+                "scanned_files": r["scanned_files"],
+                "message": r["message"],
+            }
+            for r in rows
+        ],
+    }
