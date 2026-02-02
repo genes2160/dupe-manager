@@ -3,8 +3,10 @@ import logging
 from datetime import datetime, timezone
 from uuid import uuid4
 from pathlib import Path
+import os
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException, Query
+from fastapi.responses import FileResponse
 
 from app.db import get_conn
 from app.models import ScanRequest, ScanResponse, ScanStatus, DeleteRequest
@@ -302,3 +304,10 @@ def list_scans():
             for r in rows
         ],
     }
+
+@router.get("/api/file")
+def serve_file(path: str = Query(...)):
+    if not os.path.isfile(path):
+        raise HTTPException(status_code=404, detail="File not found")
+
+    return FileResponse(path)

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Dupe Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+    <header>
+        <h1>🧹 Dupe Manager</h1>
+        <p>Simple duplicate file scanner (POC)</p>
+    </header>
+
+    <section class="card">
+        <h2>Start Scan</h2>
+
+        <label>
+            Directory path
+            <input id="path" type="text" placeholder="/home/user/documents" />
+        </label>
+
+        <label>
+            Extensions (comma-separated)
+            <input id="extensions" type="text" placeholder="pdf,jpg,png" />
+        </label>
+
+        <button onclick="startScan()">▶ Start Scan</button>
+    </section>
+
+    <section class="card">
+        <h2>Status</h2>
+        <pre id="status">Idle</pre>
+    </section>
+    <section class="card">
+        <h2>Previous Scans</h2>
+
+        <button onclick="refreshScans()">🔄 Refresh scans</button>
+
+        <select id="scanSelect" onchange="selectScan(this.value)">
+            <option value="">-- select scan --</option>
+        </select>
+    </section>
+
+    <section class="card">
+        <h2>Duplicate Groups</h2>
+        <div id="dupes"></div>
+    </section>
+
+    <script src="./app.js"></script>
+</body>
+
+</html>
