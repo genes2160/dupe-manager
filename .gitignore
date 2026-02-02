@@ -26,3 +26,6 @@ Thumbs.db
 # SQLite / local data
 *.db
 data/
+
+
+*.txt
