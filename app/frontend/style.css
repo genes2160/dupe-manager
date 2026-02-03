@@ -83,6 +83,8 @@ button {
     /* ✅ was 140px */
     object-fit: cover;
     border-radius: 4px;
+    pointer-events: none;
+    z-index: 1;
 }
 
 .file-name {
@@ -154,6 +156,7 @@ select {
     background: #e8f5e9;
     color: #2e7d32;
 }
+
 .file-select {
     position: absolute;
     top: 6px;
@@ -161,9 +164,57 @@ select {
     background: rgba(255, 255, 255, 0.9);
     padding: 4px;
     border-radius: 4px;
+    z-index: 5;
 }
 
 .file-card {
     position: relative;
     /* required for checkbox overlay */
+}
+
+.file-select {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+}
+
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: white;
+    padding: 16px;
+    border-radius: 6px;
+    width: 320px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+button.danger {
+    background: #e53935;
+    color: white;
+    border: none;
+}
+
+#confirmText {
+    white-space: pre-wrap;
+    font-family: system-ui, monospace;
+    font-size: 13px;
 }

@@ -93,7 +93,8 @@ async function loadDupes() {
         checkbox.type = "checkbox";
         checkbox.checked = idx !== 0; // keep first, select others by default
         checkbox.dataset.path = item.path;
-
+        checkbox.dataset.filename = item.filename;
+        checkbox.dataset.size = item.size_bytes;
         const checkboxWrap = document.createElement("div");
         checkboxWrap.className = "file-select";
         checkboxWrap.appendChild(checkbox);
@@ -101,26 +102,15 @@ async function loadDupes() {
         card.appendChild(checkboxWrap);
         if (isVideo(filePath)) {
                 const video = document.createElement("video");
-                video.src = `/api/file?path=${encodeURIComponent(filePath)}`;
+                // video.src = `/api/file?path=${encodeURIComponent(filePath)}`;
+                video.src = `/api/file?path=${encodeURIComponent(filePath)}#t=0.01`;
                 video.controls = true;
                 video.preload = "metadata";
-
-                // ⏩ jump forward to avoid black first frame
-                video.addEventListener("loadedmetadata", () => {
-                try {
-                    if (video.duration > 1) {
-                    video.currentTime = 1;
-                    }
-                } catch (e) {
-                    // some browsers block seek until user interaction — safe to ignore
-                }
-                });
-
-                card.appendChild(video);
                 video.muted = true;     // avoids autoplay warnings if you later add it
                 video.playsInline = true;
                 // video.style.maxHeight = "160px";
 
+                card.appendChild(video);
 
         } else if (isImage(filePath)) {
             const img = document.createElement("img");
@@ -187,28 +177,80 @@ async function loadDupes() {
     deleteBtn.textContent = "🗑️ Delete selected";
     deleteBtn.className = "delete";
 
-    deleteBtn.onclick = async () => {
-    const checked = groupDiv.querySelectorAll(
+    deleteBtn.onclick = () => {
+      const checked = groupDiv.querySelectorAll(
         'input[type="checkbox"]:checked'
-    );
+      );
 
-    if (!checked.length) {
+      if (!checked.length) {
         alert("No files selected");
         return;
-    }
+      }
 
-    const paths = Array.from(checked).map(c => c.dataset.path);
 
-    await fetch("/scan/delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-        scan_id: currentScanId,
-        paths
-        })
-    });
+      const modal = document.getElementById("confirmModal");
+      const text = document.getElementById("confirmText");
+      const confirmBtn = document.getElementById("confirmDelete");
+      const cancelBtn = document.getElementById("confirmCancel");
 
-    loadDupes();
+      const lines = Array.from(checked).map(c => {
+        const name = c.dataset.filename;
+        const size = formatBytes(Number(c.dataset.size));
+        const folder = parentFolder(c.dataset.path);
+        return `• ${name}\n  📦 ${size}\n  📁 ${folder}`;
+      });
+
+      text.textContent =
+        `You are about to permanently delete ${checked.length} file(s):\n\n` +
+        lines.join("\n\n");
+
+      modal.classList.remove("hidden");
+
+      cancelBtn.onclick = () => modal.classList.add("hidden");
+
+      confirmBtn.onclick = async () => {
+        const checked = groupDiv.querySelectorAll(
+          'input[type="checkbox"]:checked'
+        );
+
+        const choices = Array.from(checked).map(c => ({
+          path: c.dataset.path,
+          action: "delete"
+        }));
+        if (!checked.length) {
+          alert("No files selected");
+          return;
+        }
+
+        modal.classList.add("hidden");
+        confirmBtn.disabled = true;
+        await fetch("/scan/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            scan_id: currentScanId,
+            choices
+          })
+        });
+
+
+        confirmBtn.disabled = false;
+        // loadDupes();
+        
+        // 🔥 FRONTEND-ONLY CLEANUP
+        checked.forEach(cb => {
+          const card = cb.closest(".file-card");
+          if (card) card.remove();
+        });
+
+        // count remaining cards in this group
+        const remaining = groupDiv.querySelectorAll(".file-card").length;
+
+        // if only 1 left → not a dupe anymore
+        if (remaining <= 1) {
+          groupDiv.remove();
+        }
+      };
     };
 
     groupDiv.appendChild(deleteBtn);

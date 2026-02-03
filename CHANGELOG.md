@@ -75,3 +75,31 @@ All notable changes to this project will be documented here.
 
 ---
 
+## [0.2.2] – Deletion Integrity, Live Dupe Cleanup & Media UX Fixes
+
+### Added
+- Delete confirmation modal showing exact files to be removed:
+  - filename
+  - file size
+  - parent folder
+- Frontend-only cleanup after delete (no full re-fetch)
+- Favicon for browser tab identification
+
+### Changed
+- Duplicate groups now only include files that still exist on disk
+- Groups automatically disappear once fewer than 2 files remain
+- Video preview loading switched to timestamp-based seek (`#t=0.01`)
+  - Faster previews
+  - No black first frame
+- Checkbox selection enriched with file metadata for confirmation display
+
+### Fixed
+- Stale duplicate groups after file deletion
+- Backend error caused by invalid group filtering logic
+- Video controls being blocked by overlay/z-index issues
+- Delete request payload mismatch causing 422 errors
+
+### Safety & UX
+- No destructive action without explicit user confirmation
+- Deletions remain fully user-driven and scoped per scan
+- UI state stays consistent with filesystem state
