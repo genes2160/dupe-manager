@@ -162,26 +162,52 @@ def scan_status(scan_id: str):
         message=row["message"],
     )
 
-
 @router.get("/scan/{scan_id}/dupes")
 def list_dupes(scan_id: str):
     conn = get_conn()
     rows = conn.execute(
-        "SELECT dup_key, filename, size_bytes, path FROM duplicates WHERE scan_id=? ORDER BY dup_key, path",
+        """
+        SELECT dup_key, filename, size_bytes, path
+        FROM duplicates
+        WHERE scan_id=?
+        ORDER BY dup_key, path
+        """,
         (scan_id,),
     ).fetchall()
     conn.close()
+
     if not rows:
         return {"scan_id": scan_id, "groups": []}
 
     groups = {}
+
     for r in rows:
         k = r["dup_key"]
-        groups.setdefault(k, {"dup_key": k, "filename": r["filename"], "size_bytes": r["size_bytes"], "items": []})
-        groups[k]["items"].append({"filename": r["filename"], "size_bytes": r["size_bytes"], "path": r["path"]})
+        groups.setdefault(
+            k,
+            {
+                "dup_key": k,
+                "filename": r["filename"],
+                "size_bytes": r["size_bytes"],
+                "items": [],
+            },
+        )
+        groups[k]["items"].append(
+            {
+                "filename": r["filename"],
+                "size_bytes": r["size_bytes"],
+                "path": r["path"],
+            }
+        )
+
+    # ✅ keep only groups with 2+ existing files
+    groups = {
+        k: g
+        for k, g in groups.items()
+        if sum(Path(i["path"]).exists() for i in g["items"]) >= 2
+    }
 
     return {"scan_id": scan_id, "groups": list(groups.values())}
-
 
 @router.post("/scan/delete")
 def delete_selected(req: DeleteRequest):
